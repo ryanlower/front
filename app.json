@@ -1,0 +1,12 @@
+{
+  "name": "glaze",
+  "repository": "https://github.com/ryanlower/glaze",
+  "env": {
+    "BUILDPACK_URL": "https://github.com/kr/heroku-buildpack-go.git",
+    "ALLOWED_CONTENT_TYPE_REGEX": {
+      "description": "Regex for allowed content types",
+      "value": "^image/",
+      "required": false
+    }
+  }
+}
