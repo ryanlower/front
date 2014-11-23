@@ -29,7 +29,7 @@ func main() {
 
 	http.HandleFunc("/", proxy.handler)
 
-	log.Println("Listening to glaze on port " + config.port + "...")
+	log.Println("Listening as front on port " + config.port + "...")
 	err := http.ListenAndServe(":"+config.port, nil)
 	if err != nil {
 		log.Panic(err)

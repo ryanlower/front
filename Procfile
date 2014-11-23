@@ -1,1 +1,1 @@
-web: glaze PORT=$PORT
+web: front PORT=$PORT

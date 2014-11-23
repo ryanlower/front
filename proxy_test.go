@@ -31,7 +31,7 @@ func extractBodyValue(w *httptest.ResponseRecorder, k string) string {
 func TestHandler(t *testing.T) {
 	assert, p, w := setup(t)
 
-	url := "https://glaze.com?url=http://httpbin.org/ip"
+	url := "https://front.com?url=http://httpbin.org/ip"
 	req, _ := http.NewRequest("GET", url, nil)
 
 	p.handler(w, req)
@@ -43,7 +43,7 @@ func TestHandler(t *testing.T) {
 func TestHandlerWithoutUrl(t *testing.T) {
 	assert, p, w := setup(t)
 
-	url := "https://glaze.com"
+	url := "https://front.com"
 	req, _ := http.NewRequest("GET", url, nil)
 
 	p.handler(w, req)
@@ -58,7 +58,7 @@ func TestHandlerWithContentTypeRegexMatching(t *testing.T) {
 
 	// With matching Content-Type
 	content_type := "image/png"
-	req, _ := http.NewRequest("GET", "https://glaze.com?url=http://httpbin.org/response-headers?Content-Type=" + content_type, nil)
+	req, _ := http.NewRequest("GET", "https://front.com?url=http://httpbin.org/response-headers?Content-Type="+content_type, nil)
 
 	p.handler(w, req)
 
@@ -71,7 +71,7 @@ func TestHandlerWithContentTypeRegexNotMatching(t *testing.T) {
 
 	// With matching Content-Type
 	content_type := "text/plain"
-	req, _ := http.NewRequest("GET", "https://glaze.com?url=http://httpbin.org/response-headers?Content-Type=" + content_type, nil)
+	req, _ := http.NewRequest("GET", "https://front.com?url=http://httpbin.org/response-headers?Content-Type="+content_type, nil)
 
 	p.handler(w, req)
 
