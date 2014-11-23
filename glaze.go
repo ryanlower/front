@@ -11,10 +11,19 @@ type Config struct {
 	allowedContentTypes string // uncompiled regex
 }
 
+func envOrDefault(key string, default_value string) string {
+	env := os.Getenv(key)
+	if env != "" {
+		return env
+	} else {
+		return default_value
+	}
+}
+
 func main() {
 	config := Config{
 		port:                os.Getenv("PORT"),
-		allowedContentTypes: "^image/",
+		allowedContentTypes: envOrDefault("ALLOWED_CONTENT_TYPE_REGEX", "^image/"),
 	}
 	proxy := newProxy(config)
 
