@@ -24,6 +24,8 @@ The simplest method is to deploy on heroku:
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/ryanlower/front)
 
+You'll probably want to add a CDN (e.g. CloudFront) to your front deployment for caching
+
 ---
 
 ### Configuration
