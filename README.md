@@ -15,3 +15,22 @@ For example, to proxy an insecure gopher `http://golang.org/doc/gopher/frontpage
 `https://go-front.herokuapp.com/?url=http://golang.org/doc/gopher/frontpage.png`
 
 ![HTTPS Gopher](https://go-front.herokuapp.com/?url=http://golang.org/doc/gopher/frontpage.png)
+
+---
+
+### Deployment
+
+The simplest method is to deploy on heroku:
+
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/ryanlower/front)
+
+---
+
+### Configuration
+
+Config is via environment variables:
+
+variable | description | optional
+--- | --- | ---
+PORT | The port to listen on | no, though automatically set on heroku
+ALLOWED_CONTENT_TYPE_REGEX | Regex the upstream Content-Type must match in order to be proxied | yes, defaults to `^image/`
