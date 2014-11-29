@@ -12,7 +12,7 @@ Pass the remote image url to your front deployment as a url param.
 
 For example, to proxy an insecure gopher `http://golang.org/doc/gopher/frontpage.png`:
 
-`https://go-front.herokuapp.com/?url=http://golang.org/doc/gopher/frontpage.png`
+[`https://go-front.herokuapp.com/?url=http://golang.org/doc/gopher/frontpage.png`](https://go-front.herokuapp.com/?url=http://golang.org/doc/gopher/frontpage.png)
 
 ![HTTPS Gopher](https://go-front.herokuapp.com/?url=http://golang.org/doc/gopher/frontpage.png)
 
