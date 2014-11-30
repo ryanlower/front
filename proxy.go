@@ -61,12 +61,20 @@ func (p Proxy) proxyRequest(w http.ResponseWriter, params url.Values) {
 		http.Error(w, "Could not proxy", resp.StatusCode)
 	}
 
-	if p.contentTypeRegex.MatchString(resp.Header.Get("Content-Type")) {
-		p.writeResponse(w, resp)
-	} else {
-		log.Println("Upstream content doesn't match configured allowedContentTypes")
-		http.Error(w, "Upstream content doesn't match configured allowedContentTypes", http.StatusBadRequest)
+	if err := p.validResponse(resp); err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
+
+	p.writeResponse(w, resp)
+}
+
+func (p Proxy) validResponse(resp *http.Response) error {
+	if !p.contentTypeRegex.MatchString(resp.Header.Get("Content-Type")) {
+		return errors.New("Upstream content doesn't match configured allowedContentTypes")
+	}
+
+	return nil
 }
 
 func (p Proxy) writeResponse(w http.ResponseWriter, resp *http.Response) {
