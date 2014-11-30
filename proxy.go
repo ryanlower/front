@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"regexp"
 )
 
@@ -27,17 +28,19 @@ func newProxy(config Config) *Proxy {
 }
 
 func (p Proxy) handler(w http.ResponseWriter, r *http.Request) {
-	request := r.URL.Query().Get("url")
-	if request != "" {
-		p.proxyRequest(w, request)
+	params := r.URL.Query()
+
+	if params.Get("url") != "" {
+		p.proxyRequest(w, params)
 	} else {
 		log.Println("No request url to proxy")
 		http.Error(w, "No request url to proxy", http.StatusBadRequest)
 	}
 }
 
-func (p Proxy) proxyRequest(w http.ResponseWriter, request string) {
-	resp, err := http.Get(request) // http.Get follows up to 10 redirects
+func (p Proxy) proxyRequest(w http.ResponseWriter, params url.Values) {
+	url := params.Get("url")
+	resp, err := http.Get(url) // http.Get follows up to 10 redirects
 	if err != nil {
 		log.Print(err)
 		// Todo, handle specific errors
