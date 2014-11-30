@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -22,21 +21,25 @@ func setupWithConfig(t *testing.T, config Config) (*assert.Assertions, *Proxy, *
 	return assert, proxy, recorder
 }
 
-func extractBodyValue(w *httptest.ResponseRecorder, k string) string {
-	values := map[string]string{}
-	json.NewDecoder(w.Body).Decode(&values)
-	return values[k]
+func setupUpstreamServer(fileName string) *httptest.Server {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, fileName)
+	})
+	return httptest.NewServer(handler)
 }
 
 func TestHandler(t *testing.T) {
 	assert, p, w := setup(t)
+	server := setupUpstreamServer("test/images/gopher.png")
+	defer server.Close()
 
-	url := "https://front.com?url=http://httpbin.org/ip"
+	url := "https://front.com?url=" + server.URL
 	req, _ := http.NewRequest("GET", url, nil)
 
 	p.handler(w, req)
 
 	assert.Equal(w.Code, 200, "status should be ok")
+	assert.Equal(w.HeaderMap.Get("Content-Type"), "image/png")
 	assert.NotEmpty(w.Body)
 }
 
@@ -53,25 +56,28 @@ func TestHandlerWithoutUrl(t *testing.T) {
 }
 
 func TestHandlerWithContentTypeRegexMatching(t *testing.T) {
-	config := Config{allowedContentTypes: "^image/"}
+	config := Config{allowedContentTypes: "image/jpeg"}
 	assert, p, w := setupWithConfig(t, config)
+	server := setupUpstreamServer("test/images/money.jpg") // is image/jpeg
+	defer server.Close()
 
-	// With matching Content-Type
-	content_type := "image/png"
-	req, _ := http.NewRequest("GET", "https://front.com?url=http://httpbin.org/response-headers?Content-Type="+content_type, nil)
+	url := "https://front.com?url=" + server.URL
+	req, _ := http.NewRequest("GET", url, nil)
 
 	p.handler(w, req)
 
 	assert.Equal(w.Code, 200, "status should be ok")
+	assert.Equal(w.HeaderMap.Get("Content-Type"), "image/jpeg")
 }
 
 func TestHandlerWithContentTypeRegexNotMatching(t *testing.T) {
-	config := Config{allowedContentTypes: "^image/"}
+	config := Config{allowedContentTypes: "image/jpeg"}
 	assert, p, w := setupWithConfig(t, config)
+	server := setupUpstreamServer("test/images/gopher.png") // is image/png
+	defer server.Close()
 
-	// With matching Content-Type
-	content_type := "text/plain"
-	req, _ := http.NewRequest("GET", "https://front.com?url=http://httpbin.org/response-headers?Content-Type="+content_type, nil)
+	url := "https://front.com?url=" + server.URL
+	req, _ := http.NewRequest("GET", url, nil)
 
 	p.handler(w, req)
 
@@ -80,11 +86,13 @@ func TestHandlerWithContentTypeRegexNotMatching(t *testing.T) {
 
 func TestWriteResponseCopiesBody(t *testing.T) {
 	assert, p, w := setup(t)
+	server := setupUpstreamServer("test/hello.txt")
+	defer server.Close()
 
-	resp, _ := http.Get("http://httpbin.org/ip") // { "origin": "xxx.xx.xx.xxx" }
+	resp, _ := http.Get(server.URL)
 
 	p.writeResponse(w, resp)
 
 	assert.Equal(w.Code, 200, "status should be ok")
-	assert.NotEmpty(extractBodyValue(w, "origin"), "body should contain origin")
+	assert.Equal(w.Body.String(), "Nothing to see here\n")
 }
