@@ -34,7 +34,7 @@ func main() {
 
 	http.HandleFunc("/", proxy.handler)
 
-	log.Println("Listening as front on port " + config.port + "...")
+	log.Printf("Front v%v listening on port %v ...", VERSION, config.port)
 	err := http.ListenAndServe(":"+config.port, nil)
 	if err != nil {
 		log.Panic(err)
