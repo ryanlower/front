@@ -27,6 +27,11 @@ func main() {
 	}
 	proxy := newProxy(config)
 
+	// Simply ok favicon requests
+	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	http.HandleFunc("/", proxy.handler)
 
 	log.Println("Listening as front on port " + config.port + "...")
