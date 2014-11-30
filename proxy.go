@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -30,12 +31,21 @@ func newProxy(config Config) *Proxy {
 func (p Proxy) handler(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 
-	if params.Get("url") != "" {
-		p.proxyRequest(w, params)
+	if err := p.validRequest(params); err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	} else {
-		log.Println("No request url to proxy")
-		http.Error(w, "No request url to proxy", http.StatusBadRequest)
+		p.proxyRequest(w, params)
 	}
+}
+
+func (p Proxy) validRequest(params url.Values) error {
+	url := params.Get("url")
+	if url == "" {
+		return errors.New("No request url to proxy")
+	}
+
+	return nil
 }
 
 func (p Proxy) proxyRequest(w http.ResponseWriter, params url.Values) {
