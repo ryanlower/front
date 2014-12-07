@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -82,6 +83,20 @@ func TestHandlerWithContentTypeRegexNotMatching(t *testing.T) {
 	p.handler(w, req)
 
 	assert.Equal(w.Code, http.StatusBadRequest, "status should be bad request")
+}
+
+func TestProxyRequestWithNon200Body(t *testing.T) {
+	assert, p, w := setup(t)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.NotFound(w, r)
+	}))
+	defer server.Close()
+
+	params := url.Values{}
+	params.Set("url", server.URL)
+	p.proxyRequest(w, params)
+
+	assert.Equal(w.Code, http.StatusNotFound, "status should be not found")
 }
 
 func TestWriteResponseCopiesBody(t *testing.T) {

@@ -56,6 +56,10 @@ func (p Proxy) proxyRequest(w http.ResponseWriter, params url.Values) {
 		// Todo, handle specific errors
 		http.Error(w, "Could not proxy", http.StatusInternalServerError)
 	}
+	if resp.StatusCode != 200 {
+		log.Printf("Upstream response: %v", resp.StatusCode)
+		http.Error(w, "Could not proxy", resp.StatusCode)
+	}
 
 	if p.contentTypeRegex.MatchString(resp.Header.Get("Content-Type")) {
 		p.writeResponse(w, resp)
