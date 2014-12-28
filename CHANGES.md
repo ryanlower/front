@@ -1,4 +1,5 @@
 ## 0.1.1
+Revision `acab7093fd6da851eb5ebdcd18be4244ab9f1fb5`
 - Only proxy 200 responses [#1]
 
 ## 0.1.0
