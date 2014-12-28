@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 )
 
 type Proxy struct {
@@ -65,7 +66,7 @@ func (p Proxy) proxyRequest(w http.ResponseWriter, params url.Values) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	p.writeResponse(w, resp)
+	p.writeResponse(w, resp, params)
 }
 
 func (p Proxy) validResponse(resp *http.Response) error {
@@ -76,14 +77,17 @@ func (p Proxy) validResponse(resp *http.Response) error {
 	return nil
 }
 
-func (p Proxy) writeResponse(w http.ResponseWriter, resp *http.Response) {
+func (p Proxy) writeResponse(w http.ResponseWriter, resp *http.Response, params url.Values) {
 	defer resp.Body.Close()
 
 	// TODO, handle non images (just return upstream content as is?)
 	image := NewImageFromResponse(resp)
 
-	// TODO, add manipulation of image based on params
-	image.Scale(0.5) // TODO, allow customization of scaling factor
+	// Scale image if scale param is present
+	if scale := params.Get("scale"); scale != "" {
+		scaleFloat, _ := strconv.ParseFloat(scale, 32)
+		image.Scale(float32(scaleFloat))
+	}
 
 	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
 	image.Write(w)
