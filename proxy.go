@@ -83,7 +83,8 @@ func (p Proxy) writeResponse(w http.ResponseWriter, resp *http.Response) {
 	image := NewImageFromResponse(resp)
 
 	// TODO, add manipulation of image based on params
+	image.Scale(0.5) // TODO, allow customization of scaling factor
 
 	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
-	w.Write(image.Read())
+	image.Write(w)
 }
