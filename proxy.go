@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -78,7 +77,13 @@ func (p Proxy) validResponse(resp *http.Response) error {
 }
 
 func (p Proxy) writeResponse(w http.ResponseWriter, resp *http.Response) {
+	defer resp.Body.Close()
+
+	// TODO, handle non images (just return upstream content as is?)
+	image := NewImageFromResponse(resp)
+
+	// TODO, add manipulation of image based on params
+
 	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
-	io.Copy(w, resp.Body)
-	resp.Body.Close()
+	w.Write(image.Read())
 }
