@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -29,6 +30,9 @@ func setupUpstreamServer(fileName string) *httptest.Server {
 	return httptest.NewServer(handler)
 }
 
+// 'test/images/gopher.png' is a 250x340 image/png
+// 'test/images/money.jpg'  is a 600x600 image/jpeg
+
 func TestHandler(t *testing.T) {
 	assert, p, w := setup(t)
 	server := setupUpstreamServer("test/images/gopher.png")
@@ -42,6 +46,31 @@ func TestHandler(t *testing.T) {
 	assert.Equal(w.Code, 200, "status should be ok")
 	assert.Equal(w.HeaderMap.Get("Content-Type"), "image/png")
 	assert.NotEmpty(w.Body)
+
+	image, _, _ := image.Decode((w.Body))
+	// Should be original size
+	assert.Equal(image.Bounds().Dx(), 250, "width should be 250")
+	assert.Equal(image.Bounds().Dy(), 340, "height should be 340")
+}
+
+func TestHandlerWithSizeParams(t *testing.T) {
+	assert, p, w := setup(t)
+	server := setupUpstreamServer("test/images/gopher.png")
+	defer server.Close()
+
+	url := "https://front.com?width=500&height=100&url=" + server.URL
+	req, _ := http.NewRequest("GET", url, nil)
+
+	p.handler(w, req)
+
+	assert.Equal(w.Code, 200, "status should be ok")
+	assert.Equal(w.HeaderMap.Get("Content-Type"), "image/jpeg")
+	assert.NotEmpty(w.Body)
+
+	image, _, _ := image.Decode((w.Body))
+	// Should be resized
+	assert.Equal(image.Bounds().Dx(), 500, "width should be 500")
+	assert.Equal(image.Bounds().Dy(), 100, "height should be 100")
 }
 
 func TestHandlerWithoutUrl(t *testing.T) {
@@ -59,7 +88,7 @@ func TestHandlerWithoutUrl(t *testing.T) {
 func TestHandlerWithContentTypeRegexMatching(t *testing.T) {
 	config := Config{allowedContentTypes: "image/jpeg"}
 	assert, p, w := setupWithConfig(t, config)
-	server := setupUpstreamServer("test/images/money.jpg") // is image/jpeg
+	server := setupUpstreamServer("test/images/money.jpg")
 	defer server.Close()
 
 	url := "https://front.com?url=" + server.URL
@@ -97,17 +126,4 @@ func TestProxyRequestWithNon200Body(t *testing.T) {
 	p.proxyRequest(w, params)
 
 	assert.Equal(w.Code, http.StatusNotFound, "status should be not found")
-}
-
-func TestWriteResponseCopiesBody(t *testing.T) {
-	assert, p, w := setup(t)
-	server := setupUpstreamServer("test/hello.txt")
-	defer server.Close()
-
-	resp, _ := http.Get(server.URL)
-
-	p.writeResponse(w, resp)
-
-	assert.Equal(w.Code, 200, "status should be ok")
-	assert.Equal(w.Body.String(), "Nothing to see here\n")
 }
