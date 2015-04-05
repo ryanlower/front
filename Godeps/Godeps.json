@@ -1,5 +1,18 @@
 {
 	"ImportPath": "front",
-	"GoVersion": "go1.4",
-	"Deps": []
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "github.com/disintegration/imaging",
+			"Rev": "3ab6ec550f20d497d2755ed3c48a3e45ad6b7eb9"
+		},
+		{
+			"ImportPath": "golang.org/x/image/bmp",
+			"Rev": "c53fa16781cb10dd75d2e62c6a4db691cbde3e55"
+		},
+		{
+			"ImportPath": "golang.org/x/image/tiff",
+			"Rev": "c53fa16781cb10dd75d2e62c6a4db691cbde3e55"
+		}
+	]
 }
