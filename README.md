@@ -22,7 +22,7 @@ Add width and height params to the standard proxy url. For example, for a smalle
 
 [`https://go-front.herokuapp.com/?url=http://golang.org/doc/gopher/frontpage.png&width=125&height=175`](https://go-front.herokuapp.com/?url=http://golang.org/doc/gopher/frontpage.png&width=125&height=175)
 
-![HTTPS Gopher](https://go-front.herokuapp.com/?url=http://golang.org/doc/gopher/frontpage.png&width=125&height=175)
+![Small Gopher](https://go-front.herokuapp.com?url=http://golang.org/doc/gopher/frontpage.png&width=125&height=175)
 
 ---
 
