@@ -11,14 +11,14 @@ import (
 )
 
 type Proxy struct {
-	config           Config
+	config           *config
 	contentTypeRegex *regexp.Regexp
 }
 
-func newProxy(config Config) *Proxy {
+func newProxy(config *config) *Proxy {
 	// Todo, add config error checking
 
-	contentTypeRegex, err := regexp.Compile(config.allowedContentTypes)
+	contentTypeRegex, err := regexp.Compile(config.AllowedContentTypes)
 	if err != nil {
 		log.Panic(err)
 	}

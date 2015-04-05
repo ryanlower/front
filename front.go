@@ -3,32 +3,16 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 	"runtime"
 )
-
-type Config struct {
-	port                string
-	allowedContentTypes string // uncompiled regex
-}
-
-func envOrDefault(key string, default_value string) string {
-	env := os.Getenv(key)
-	if env != "" {
-		return env
-	} else {
-		return default_value
-	}
-}
 
 func main() {
 	// Use all cores
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	config := Config{
-		port:                os.Getenv("PORT"),
-		allowedContentTypes: envOrDefault("ALLOWED_CONTENT_TYPE_REGEX", "^image/"),
-	}
+	config := new(config)
+	config.load()
+
 	proxy := newProxy(config)
 
 	// Simply ok favicon requests
@@ -38,8 +22,8 @@ func main() {
 
 	http.HandleFunc("/", proxy.handler)
 
-	log.Printf("Front v%v listening on port %v ...", VERSION, config.port)
-	err := http.ListenAndServe(":"+config.port, nil)
+	log.Printf("Front v%v listening on port %v ...", VERSION, config.Port)
+	err := http.ListenAndServe(":"+config.Port, nil)
 	if err != nil {
 		log.Panic(err)
 	}

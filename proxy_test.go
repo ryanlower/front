@@ -11,11 +11,11 @@ import (
 )
 
 func setup(t *testing.T) (*assert.Assertions, *Proxy, *httptest.ResponseRecorder) {
-	config := Config{}
+	config := &config{}
 	return setupWithConfig(t, config)
 }
 
-func setupWithConfig(t *testing.T, config Config) (*assert.Assertions, *Proxy, *httptest.ResponseRecorder) {
+func setupWithConfig(t *testing.T, config *config) (*assert.Assertions, *Proxy, *httptest.ResponseRecorder) {
 	assert := assert.New(t)
 	proxy := newProxy(config)
 	recorder := httptest.NewRecorder()
@@ -86,7 +86,7 @@ func TestHandlerWithoutUrl(t *testing.T) {
 }
 
 func TestHandlerWithContentTypeRegexMatching(t *testing.T) {
-	config := Config{allowedContentTypes: "image/jpeg"}
+	config := &config{AllowedContentTypes: "image/jpeg"}
 	assert, p, w := setupWithConfig(t, config)
 	server := setupUpstreamServer("test/images/money.jpg")
 	defer server.Close()
@@ -101,7 +101,7 @@ func TestHandlerWithContentTypeRegexMatching(t *testing.T) {
 }
 
 func TestHandlerWithContentTypeRegexNotMatching(t *testing.T) {
-	config := Config{allowedContentTypes: "image/jpeg"}
+	config := &config{AllowedContentTypes: "image/jpeg"}
 	assert, p, w := setupWithConfig(t, config)
 	server := setupUpstreamServer("test/images/gopher.png") // is image/png
 	defer server.Close()
