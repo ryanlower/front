@@ -7,6 +7,10 @@
 			"Rev": "3ab6ec550f20d497d2755ed3c48a3e45ad6b7eb9"
 		},
 		{
+			"ImportPath": "github.com/ryanlower/setting",
+			"Rev": "1c0c9db35430a9011c14cb43dd6e328d2d3aecf5"
+		},
+		{
 			"ImportPath": "golang.org/x/image/bmp",
 			"Rev": "c53fa16781cb10dd75d2e62c6a4db691cbde3e55"
 		},
