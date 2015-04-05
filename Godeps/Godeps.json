@@ -3,12 +3,48 @@
 	"GoVersion": "go1.4.2",
 	"Deps": [
 		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/aws",
+			"Rev": "ea52d305ab3c8e1b0638bc0638e750fd47e2752d"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/endpoints",
+			"Rev": "ea52d305ab3c8e1b0638bc0638e750fd47e2752d"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/query",
+			"Rev": "ea52d305ab3c8e1b0638bc0638e750fd47e2752d"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/rest",
+			"Rev": "ea52d305ab3c8e1b0638bc0638e750fd47e2752d"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/restxml",
+			"Rev": "ea52d305ab3c8e1b0638bc0638e750fd47e2752d"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/xml/xmlutil",
+			"Rev": "ea52d305ab3c8e1b0638bc0638e750fd47e2752d"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/signer/v4",
+			"Rev": "ea52d305ab3c8e1b0638bc0638e750fd47e2752d"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/service/s3",
+			"Rev": "ea52d305ab3c8e1b0638bc0638e750fd47e2752d"
+		},
+		{
 			"ImportPath": "github.com/disintegration/imaging",
 			"Rev": "3ab6ec550f20d497d2755ed3c48a3e45ad6b7eb9"
 		},
 		{
 			"ImportPath": "github.com/ryanlower/setting",
 			"Rev": "1c0c9db35430a9011c14cb43dd6e328d2d3aecf5"
+		},
+		{
+			"ImportPath": "github.com/vaughan0/go-ini",
+			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
 		},
 		{
 			"ImportPath": "golang.org/x/image/bmp",
