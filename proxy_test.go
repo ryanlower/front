@@ -17,7 +17,7 @@ func setup(t *testing.T) (*assert.Assertions, *Proxy, *httptest.ResponseRecorder
 
 func setupWithConfig(t *testing.T, config *config) (*assert.Assertions, *Proxy, *httptest.ResponseRecorder) {
 	assert := assert.New(t)
-	proxy := newProxy(config)
+	proxy := newProxy(config, nil)
 	recorder := httptest.NewRecorder()
 
 	return assert, proxy, recorder
@@ -73,7 +73,7 @@ func TestHandlerWithSizeParams(t *testing.T) {
 	assert.Equal(image.Bounds().Dy(), 100, "height should be 100")
 }
 
-func TestHandlerWithoutUrl(t *testing.T) {
+func TestHandlerWithoutUrlOrPath(t *testing.T) {
 	assert, p, w := setup(t)
 
 	url := "https://front.com"
@@ -82,7 +82,7 @@ func TestHandlerWithoutUrl(t *testing.T) {
 	p.handler(w, req)
 
 	assert.Equal(w.Code, http.StatusBadRequest, "status should be bad request")
-	assert.Equal(w.Body.String(), "No request url to proxy\n")
+	assert.Equal(w.Body.String(), "No request url or path to proxy\n")
 }
 
 func TestHandlerWithContentTypeRegexMatching(t *testing.T) {

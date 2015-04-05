@@ -13,7 +13,9 @@ func main() {
 	config := new(config)
 	config.load()
 
-	proxy := newProxy(config)
+	s3 := &s3{conf: config}
+
+	proxy := newProxy(config, s3)
 
 	// Simply ok favicon requests
 	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {

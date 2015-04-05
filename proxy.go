@@ -2,20 +2,23 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type Proxy struct {
 	config           *config
 	contentTypeRegex *regexp.Regexp
+	s3               *s3
 }
 
-func newProxy(config *config) *Proxy {
+func newProxy(config *config, s3 *s3) *Proxy {
 	// Todo, add config error checking
 
 	contentTypeRegex, err := regexp.Compile(config.AllowedContentTypes)
@@ -26,6 +29,7 @@ func newProxy(config *config) *Proxy {
 	return &Proxy{
 		config:           config,
 		contentTypeRegex: contentTypeRegex,
+		s3:               s3,
 	}
 }
 
@@ -42,60 +46,73 @@ func (p Proxy) handler(w http.ResponseWriter, r *http.Request) {
 
 func (p Proxy) validRequest(params url.Values) error {
 	url := params.Get("url")
-	if url == "" {
-		return errors.New("No request url to proxy")
+	path := params.Get("path")
+	if url == "" && path == "" {
+		return errors.New("No request url or path to proxy")
 	}
 
 	return nil
 }
 
 func (p Proxy) proxyRequest(w http.ResponseWriter, params url.Values) {
-	url := params.Get("url")
+	// TODO, handle missing (or zero) query params
+	widthInt, _ := strconv.Atoi(params.Get("width"))
+	heightInt, _ := strconv.Atoi(params.Get("height"))
 
-	resp, err := http.Get(url) // http.Get follows up to 10 redirects
+	if path := params.Get("path"); path != "" {
+		cachedPath := strings.ToLower(
+			fmt.Sprintf("front/%dx%d/%s", widthInt, heightInt, path))
 
-	defer resp.Body.Close()
+		if body, err := p.s3.read(cachedPath); err == nil {
+			// S3 cache hit, return cached body
+			log.Printf("[HIT] %s", cachedPath)
+			io.Copy(w, body)
+		} else {
+			// S3 cache miss, get path from S3, resize, return (and write to cache)
+			log.Printf("[MISS] %s", cachedPath)
+			body, err := p.s3.read(path)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			}
+			defer body.Close()
 
-	if err != nil {
-		log.Print(err)
-		// Todo, handle specific errors
-		http.Error(w, "Could not proxy", http.StatusInternalServerError)
-	}
+			img, _ := newImg(body)
+			img.resize(widthInt, heightInt)
 
-	if resp.StatusCode != 200 {
-		log.Printf("Upstream response: %v", resp.StatusCode)
-		http.Error(w, "Could not proxy", resp.StatusCode)
-		return
-	}
-
-	if err := p.validResponse(resp); err != nil {
-		log.Println(err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	width := params.Get("width")
-	height := params.Get("height")
-	if width != "" && height != "" {
-		img, _ := newImg(resp.Body)
+			// Write the resized image (as jpeg) to the http.ResponseWriter
+			img.write(w)
+			// Write the resized image to s3 cache
+			// TODO, handle writing errors?
+			go p.s3.write(cachedPath, img)
+		}
+	} else if url := params.Get("url"); url != "" {
+		resp, err := http.Get(url) // http.Get follows up to 10 redirects
 		if err != nil {
-			// TODO, handle error (redirect to original url?)
-			log.Println(err)
-			http.Error(w, "Could not create img", http.StatusInternalServerError)
+			http.Error(w, "Could not proxy", http.StatusInternalServerError)
+			return
+		}
+		if resp.StatusCode != 200 {
+			http.Error(w, "Could not proxy", resp.StatusCode)
+			return
+		}
+		defer resp.Body.Close()
+
+		if err := p.validResponse(resp); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		// TODO, handle missing query params
-		widthInt, _ := strconv.Atoi(width)
-		heightInt, _ := strconv.Atoi(height)
-		img.resize(widthInt, heightInt)
-
-		// Write the resized image (as jpeg) to the http.ResponseWriter
-		img.write(w)
-	} else {
-		// Just copy the upstream response to the http.ResponseWriter
-		w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
-		io.Copy(w, resp.Body)
+		if widthInt > 0 && heightInt > 0 {
+			img, _ := newImg(resp.Body)
+			img.resize(widthInt, heightInt)
+			// Write the resized image (as jpeg) to the http.ResponseWriter
+			img.write(w)
+		} else {
+			// Just copy the upstream response to the http.ResponseWriter
+			w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
+			io.Copy(w, resp.Body)
+		}
 	}
 }
 

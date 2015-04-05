@@ -25,7 +25,7 @@ func newImg(r io.Reader) (*img, error) {
 
 // adds content-type header and encodes image to w
 func (i *img) write(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "image/jpeg")
+	w.Header().Set("Content-Type", i.contentType())
 	i.encode(w)
 }
 
@@ -43,4 +43,9 @@ func (i *img) resize(width, height int) {
 	filter := imaging.Linear
 
 	i.image = imaging.Thumbnail(i.image, width, height, filter)
+}
+
+func (i *img) contentType() string {
+	// Always jpeg at the moment (see encode)
+	return "image/jpeg"
 }
