@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 )
 
 type Proxy struct {
@@ -50,23 +51,52 @@ func (p Proxy) validRequest(params url.Values) error {
 
 func (p Proxy) proxyRequest(w http.ResponseWriter, params url.Values) {
 	url := params.Get("url")
+
 	resp, err := http.Get(url) // http.Get follows up to 10 redirects
+
+	defer resp.Body.Close()
+
 	if err != nil {
 		log.Print(err)
 		// Todo, handle specific errors
 		http.Error(w, "Could not proxy", http.StatusInternalServerError)
 	}
+
 	if resp.StatusCode != 200 {
 		log.Printf("Upstream response: %v", resp.StatusCode)
 		http.Error(w, "Could not proxy", resp.StatusCode)
+		return
 	}
 
 	if err := p.validResponse(resp); err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	p.writeResponse(w, resp)
+	width := params.Get("width")
+	height := params.Get("height")
+	if width != "" && height != "" {
+		img, _ := newImg(resp.Body)
+		if err != nil {
+			// TODO, handle error (redirect to original url?)
+			log.Println(err)
+			http.Error(w, "Could not create img", http.StatusInternalServerError)
+			return
+		}
+
+		// TODO, handle missing query params
+		widthInt, _ := strconv.Atoi(width)
+		heightInt, _ := strconv.Atoi(height)
+		img.resize(widthInt, heightInt)
+
+		// Write the resized image (as jpeg) to the http.ResponseWriter
+		img.write(w)
+	} else {
+		// Just copy the upstream response to the http.ResponseWriter
+		w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
+		io.Copy(w, resp.Body)
+	}
 }
 
 func (p Proxy) validResponse(resp *http.Response) error {
@@ -75,10 +105,4 @@ func (p Proxy) validResponse(resp *http.Response) error {
 	}
 
 	return nil
-}
-
-func (p Proxy) writeResponse(w http.ResponseWriter, resp *http.Response) {
-	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
-	io.Copy(w, resp.Body)
-	resp.Body.Close()
 }

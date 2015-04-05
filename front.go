@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 )
 
 type Config struct {
@@ -21,6 +22,9 @@ func envOrDefault(key string, default_value string) string {
 }
 
 func main() {
+	// Use all cores
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	config := Config{
 		port:                os.Getenv("PORT"),
 		allowedContentTypes: envOrDefault("ALLOWED_CONTENT_TYPE_REGEX", "^image/"),
