@@ -77,7 +77,11 @@ func (p Proxy) proxyRequest(w http.ResponseWriter, params url.Values) {
 			}
 			defer body.Close()
 
-			img, _ := newImg(body)
+			img, err := newImg(body)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 			img.resize(widthInt, heightInt)
 
 			// Write the resized image (as jpeg) to the http.ResponseWriter
@@ -104,7 +108,12 @@ func (p Proxy) proxyRequest(w http.ResponseWriter, params url.Values) {
 		}
 
 		if widthInt > 0 && heightInt > 0 {
-			img, _ := newImg(resp.Body)
+			img, err := newImg(resp.Body)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
 			img.resize(widthInt, heightInt)
 			// Write the resized image (as jpeg) to the http.ResponseWriter
 			img.write(w)
