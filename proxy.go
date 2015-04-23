@@ -63,14 +63,16 @@ func (p Proxy) proxyRequest(w http.ResponseWriter, params url.Values) {
 		cachedPath := strings.ToLower(
 			fmt.Sprintf("front/%dx%d/%s", widthInt, heightInt, path))
 
-		if body, err := p.s3.read(cachedPath); err == nil {
+		if body, etag, err := p.s3.read(cachedPath); err == nil {
 			// S3 cache hit, return cached body
 			log.Printf("[HIT] %s", cachedPath)
+			w.Header().Set("Etag", etag)
+
 			io.Copy(w, body)
 		} else {
 			// S3 cache miss, get path from S3, resize, return (and write to cache)
 			log.Printf("[MISS] %s", cachedPath)
-			body, err := p.s3.read(path)
+			body, etag, err := p.s3.read(path)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusNotFound)
 				return
@@ -88,6 +90,7 @@ func (p Proxy) proxyRequest(w http.ResponseWriter, params url.Values) {
 			}
 			img.resize(widthInt, heightInt)
 
+			w.Header().Set("Etag", etag)
 			// Write the resized image (as jpeg) to the http.ResponseWriter
 			img.write(w)
 			// Write the resized image to s3 cache

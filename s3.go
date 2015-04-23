@@ -21,7 +21,7 @@ func (s3 *s3) newClient() *awsS3.S3 {
 	})
 }
 
-func (s3 *s3) read(path string) (io.ReadCloser, error) {
+func (s3 *s3) read(path string) (io.ReadCloser, string, error) {
 	log.Print("s3 read path=", path)
 
 	resp, _ := s3.newClient().GetObject(&awsS3.GetObjectInput{
@@ -31,10 +31,10 @@ func (s3 *s3) read(path string) (io.ReadCloser, error) {
 	// TODO, handle s3 errors
 
 	if resp.LastModified == nil {
-		return nil, errors.New("Object not found")
+		return nil, "", errors.New("Object not found")
 	}
 
-	return resp.Body, nil
+	return resp.Body, *resp.ETag, nil
 }
 
 func (s3 *s3) write(path string, i *img) error {
