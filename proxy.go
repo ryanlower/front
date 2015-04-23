@@ -79,7 +79,11 @@ func (p Proxy) proxyRequest(w http.ResponseWriter, params url.Values) {
 
 			img, err := newImg(body)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				s3URL := fmt.Sprintf("https://%s.s3.amazonaws.com/%s", p.config.S3.Bucket, path)
+
+				log.Printf("[REDIRECT] %s", s3URL)
+				w.Header().Set("Location", s3URL)
+				w.WriteHeader(http.StatusFound)
 				return
 			}
 			img.resize(widthInt, heightInt)
