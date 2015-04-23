@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"log"
 
 	"github.com/awslabs/aws-sdk-go/aws"
 	awsS3 "github.com/awslabs/aws-sdk-go/service/s3"
@@ -21,6 +22,8 @@ func (s3 *s3) newClient() *awsS3.S3 {
 }
 
 func (s3 *s3) read(path string) (io.ReadCloser, error) {
+	log.Print("s3 read path=", path)
+
 	resp, _ := s3.newClient().GetObject(&awsS3.GetObjectInput{
 		Bucket: aws.String(s3.conf.S3.Bucket),
 		Key:    aws.String(path),
@@ -35,6 +38,8 @@ func (s3 *s3) read(path string) (io.ReadCloser, error) {
 }
 
 func (s3 *s3) write(path string, i *img) error {
+	log.Print("s3 write path=", path)
+
 	b := new(bytes.Buffer)
 	i.encode(b)
 
