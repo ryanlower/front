@@ -27,7 +27,7 @@ func TestWrite(t *testing.T) {
 	assert.Equal(bodyImage.Bounds(), fileImage.Bounds(), "images should be same size")
 }
 
-func TestResize(t *testing.T) {
+func TestThumbnail(t *testing.T) {
 	assert := assert.New(t)
 
 	file, _ := os.Open("test/images/gopher.png")
@@ -38,4 +38,18 @@ func TestResize(t *testing.T) {
 	bounds := img.image.Bounds()
 	assert.Equal(bounds.Dx(), 100, "width should be 100")
 	assert.Equal(bounds.Dy(), 50, "height should be 50")
+}
+
+func TestResize(t *testing.T) {
+	assert := assert.New(t)
+
+	file, _ := os.Open("test/images/gopher.png") // 250 x 340px
+	img, _ := newImg(file)
+
+	// Resize to half width. Height should become 170px
+	img.resize(125, 0)
+
+	bounds := img.image.Bounds()
+	assert.Equal(bounds.Dx(), 125, "width should be 125")
+	assert.Equal(bounds.Dy(), 170, "height should be 170")
 }

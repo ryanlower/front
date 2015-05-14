@@ -42,5 +42,11 @@ func (i *img) resize(width, height int) {
 	// TODO, allow customisation of filter
 	filter := imaging.Linear
 
-	i.image = imaging.Thumbnail(i.image, width, height, filter)
+	if width > 0 && height > 0 {
+		// Resize and crop
+		i.image = imaging.Thumbnail(i.image, width, height, filter)
+	} else {
+		// Resize to specificed width or height, preserving aspect ratio
+		i.image = imaging.Resize(i.image, width, height, filter)
+	}
 }
